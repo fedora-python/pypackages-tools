@@ -7,6 +7,7 @@ import pytest
 TEST_ROOTS = os.path.join(os.path.dirname(__file__), 'test_roots')
 BYTECOMPILE_SCRIPT = 'brp-python-bytecompile.py'
 BRP_PYTHON_BYTECOMPILE = os.path.join(os.path.dirname(__file__), '..', BYTECOMPILE_SCRIPT)
+LOG_MSG_PREFIX = 'pptools.bytecompile'
 
 
 def run_bytecompile(pyruntime, directory, rpm_buildroot):
@@ -23,22 +24,22 @@ def run_bytecompile(pyruntime, directory, rpm_buildroot):
 def assert_libdirs_not_associated(retcode, output, libdirs, testdir, rpm_buildroot):
     """Warning: libdirs must not start with slash!"""
     assert retcode == 11
-    assert BYTECOMPILE_SCRIPT + \
+    assert LOG_MSG_PREFIX + \
         ': Error: there are Python libdirs not associated with any Python runtime:' in output
 
     full_libdirs = [os.path.join(TEST_ROOTS, testdir, rpm_buildroot, l) for l in libdirs]
     for fl in full_libdirs:
-        assert BYTECOMPILE_SCRIPT + ': ' + fl in output
+        assert LOG_MSG_PREFIX + ': ' + fl in output
 
 
 def assert_multiple_default_root_pythons(retcode, output, root_pythons):
     assert retcode == 10
-    assert BYTECOMPILE_SCRIPT + \
+    assert LOG_MSG_PREFIX + \
         ': Error, following roots are to be compiled by multiple Pythons:' in output
 
     check_str = '{bsc}: "{root}": {pythons}'
     for root, pythons in root_pythons.items():
-        assert check_str.format(bsc=BYTECOMPILE_SCRIPT, root=root, pythons=', '.join(pythons)) \
+        assert check_str.format(bsc=LOG_MSG_PREFIX, root=root, pythons=', '.join(pythons)) \
             in output
 
 
@@ -49,7 +50,7 @@ def assert_compile_string(retcode, output, **kwargs):
     kwargs['to_compile'] = os.path.join(TEST_ROOTS, kwargs['to_compile'])
     flags_variations = ['', '-O']
 
-    check_template = [BYTECOMPILE_SCRIPT + ': ']
+    check_template = [LOG_MSG_PREFIX + ': ']
     check_template_from_kwargs = kwargs.pop('check_template', None)
     if check_template_from_kwargs:
         check_template.append(check_template_from_kwargs)
@@ -107,7 +108,7 @@ def test_one_libdir(pyruntime, has_default_python, testdir):
             to_compile=to_compile)
 
     # make sure that only the previously tested compile strings were printed
-    assert out.count(BYTECOMPILE_SCRIPT + ':') == 7 if has_default_python else 5
+    assert out.count(LOG_MSG_PREFIX + ':') == 7 if has_default_python else 5
 
 
 def test_complex(pyruntime):
